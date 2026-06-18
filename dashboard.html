@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Noch Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'MADE Evolve Sans EVO';
+            src: url('../fonts/MADEEvolveSansEVO.ttf') format('truetype');
+            font-weight: 400 700;
+            font-style: normal;
+            font-display: swap;
+        }
+    </style>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #E03030;
+            --primary-rgb: 224, 48, 48;
+            --primary-light: rgba(224, 48, 48, 0.14);
+            --primary-lighter: rgba(224, 48, 48, 0.07);
+            --primary-border: rgba(224, 48, 48, 0.22);
+            --accent: #8B1A1A;
+            --accent-rgb: 139, 26, 26;
+            --bg-dark: #080204;
+            --bg-card: rgba(224, 48, 48, 0.04);
+            --text-white: #F5EAEA;
+            --text-white70: rgba(245, 234, 234, 0.65);
+            --text-white54: rgba(245, 234, 234, 0.4);
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: linear-gradient(160deg, #0C0202 0%, #080204 50%, #0A0203 100%);
+            background-attachment: fixed;
+            color: var(--text-white);
+            overflow-x: hidden;
+            min-height: 100vh;
+            overscroll-behavior: none;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -120px;
+            right: -80px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(224, 48, 48, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 80px;
+            left: -100px;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(139, 26, 26, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== SKELETON / LOADING ===== */
+        .skeleton {
+            background: linear-gradient(90deg,
+                rgba(224, 48, 48, 0.06) 25%,
+                rgba(224, 48, 48, 0.12) 50%,
+                rgba(224, 48, 48, 0.06) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ===== APP BAR ===== */
+        .app-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            background: rgba(8, 2, 2, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--primary-border);
+        }
+
+        .menu-btn,
+        .account-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: opacity 0.2s;
+        }
+
+        .menu-btn:active,
+        .account-btn:active { opacity: 0.6; }
+
+        .app-bar-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .app-bar-title img {
+            height: 50px;
+            object-fit: contain;
+        }
+
+        /* ===== DRAWER ===== */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100%;
+            z-index: 2000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            background: rgba(12, 2, 2, 0.96);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-right: 1px solid var(--primary-border);
+        }
+
+        .drawer.active { left: 0; }
+
+        .drawer-header {
+            height: 200px;
+            padding: 20px 16px;
+            background: linear-gradient(to bottom, rgba(var(--primary-rgb), 0.07), transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .drawer-logo { margin-bottom: 16px; }
+
+        .drawer-logo img {
+            height: 130px;
+            object-fit: contain;
+            display: block;
+            margin-left: 40px;
+        }
+
+        .info-card {
+            padding: 12px 16px;
+            margin-bottom: 5px;
+            background: rgba(var(--primary-rgb), 0.06);
+            border-radius: 14px;
+            border: 1px solid var(--primary-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -14px; right: -14px;
+            width: 52px; height: 52px;
+            background: rgba(var(--primary-rgb), 0.08);
+            transform: rotate(45deg);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .info-card::after {
+            content: '';
+            position: absolute;
+            bottom: -10px; right: 30px;
+            width: 30px; height: 30px;
+            background: rgba(var(--primary-rgb), 0.05);
+            transform: rotate(45deg);
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .info-card i {
+            color: var(--primary);
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-card-label {
+            color: var(--text-white70);
+            font-weight: bold;
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-card-value {
+            color: var(--text-white);
+            font-family: 'Share Tech Mono', monospace;
+            margin-left: auto;
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .drawer-menu { list-style: none; padding: 12px 0; }
+
+        .drawer-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .drawer-menu-item:active { background: rgba(var(--primary-rgb), 0.08); }
+
+        .drawer-menu-item i {
+            color: var(--primary);
+            font-size: 19px;
+            margin-right: 16px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .drawer-menu-item span {
+            color: var(--text-white70);
+            font-size: 15px;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            padding-top: 62px;
+            padding-bottom: 110px;
+            min-height: 100vh;
+            animation: fadeIn 0.35s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        /* ===== NEWS CAROUSEL ===== */
+        .news-carousel { margin: 14px 0 20px 0; }
+
+        .carousel-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            border-radius: 18px;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            will-change: transform;
+        }
+
+        .carousel-track.snapping {
+            transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .news-slide {
+            min-width: 100%;
+            height: 200px;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .news-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            padding: 18px 16px 14px;
+            background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.1), transparent);
+        }
+
+        .news-title {
+            color: var(--text-white);
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .news-desc {
+            color: var(--text-white70);
+            font-size: 13px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .dot {
+            height: 7px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            width: 22px;
+            background: var(--primary);
+        }
+
+        /* ===== WELCOME SECTION ===== */
+        .welcome-section {
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg,
+                rgba(224, 48, 48, 0.14) 0%,
+                rgba(139, 26, 26, 0.07) 55%,
+                rgba(8, 2, 2, 0.5) 100%
+            );
+            border: 1px solid rgba(224, 48, 48, 0.3);
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 120px; height: 120px;
+            background: rgba(224, 48, 48, 0.06);
+            transform: rotate(30deg);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            pointer-events: none;
+        }
+
+        .welcome-section::after {
+            content: '';
+            position: absolute;
+            bottom: 10px; left: -20px;
+            width: 80px; height: 80px;
+            background: rgba(139, 26, 26, 0.07);
+            transform: skewX(-20deg);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .welcome-logo-top {
+            display: flex;
+            top: -30px;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-logo-top img {
+            height: 70px;
+            margin-bottom: -30px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(224, 48, 48, 0.35));
+        }
+
+        .welcome-deco-tr {
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(224, 48, 48, 0.14), transparent 70%);
+            pointer-events: none;
+        }
+
+        .welcome-deco-bl {
+            position: absolute;
+            bottom: -30px; left: -30px;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 26, 26, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+
+        .welcome-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .welcome-avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+            width: 58px;
+            height: 58px;
+        }
+
+        .welcome-avatar {
+            width: 58px; height: 58px;
+            border-radius: 50%;
+            background: rgba(224, 48, 48, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(224, 48, 48, 0.45);
+        }
+
+        .welcome-avatar i { color: var(--primary); font-size: 25px; }
+
+        .welcome-info { flex: 1; min-width: 0; }
+
+        .welcome-label {
+            color: var(--text-white54);
+            font-size: 11px;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .welcome-username {
+            color: var(--text-white);
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .welcome-verified { color: #60a5fa; font-size: 13px; flex-shrink: 0; }
+
+        .welcome-badges-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .role-owner {
+            background: linear-gradient(135deg, rgba(224, 48, 48, 0.2), rgba(139, 26, 26, 0.15));
+            color: #FF8A8A;
+            border-color: rgba(224, 48, 48, 0.4);
+        }
+
+        .role-vip {
+            background: linear-gradient(135deg, rgba(250, 204, 21, 0.2), rgba(180, 140, 10, 0.12));
+            color: #FDE68A;
+            border-color: rgba(250, 204, 21, 0.4);
+        }
+
+        .role-user {
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(59, 130, 246, 0.1));
+            color: #93C5FD;
+            border-color: rgba(96, 165, 250, 0.35);
+        }
+
+        .member-id-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-white54);
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* ===== EXPIRY RING ===== */
+        .expiry-ring-wrap {
+            position: relative;
+            flex-shrink: 0;
+            width: 82px; height: 82px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .expiry-ring-svg {
+            position: absolute;
+            inset: 0;
+            transform: rotate(-90deg);
+        }
+
+        .ring-track {
+            fill: none;
+            stroke: rgba(224, 48, 48, 0.1);
+            stroke-width: 6;
+        }
+
+        .ring-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 251.33;
+            stroke-dashoffset: 251.33;
+            transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ring-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.15;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .ring-pct {
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-white);
+        }
+
+        .ring-sub {
+            font-size: 9px;
+            color: var(--text-white54);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== WELCOME STATS ===== */
+        .welcome-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(224, 48, 48, 0.22), transparent);
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wstat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .wstat i { color: var(--primary); font-size: 16px; flex-shrink: 0; }
+
+        .wstat-text { display: flex; flex-direction: column; }
+
+        .wstat-val {
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-white);
+            line-height: 1.2;
+        }
+
+        .wstat-lbl {
+            font-size: 9px;
+            color: var(--text-white54);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .wstat-sep {
+            width: 1px;
+            height: 32px;
+            background: rgba(224, 48, 48, 0.15);
+            flex-shrink: 0;
+        }
+
+        /* ===== SECTION TITLE ===== */
+        .section-title {
+            color: var(--text-white);
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            margin-bottom: 14px;
+        }
+
+        /* ===== QUICK ACTIONS ===== */
+        .actions-scroll-wrap {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 6px;
+            margin-bottom: 24px;
+            margin-left: -4px;
+            padding-left: 4px;
+            margin-right: -16px;
+            padding-right: 20px;
+        }
+
+        .actions-scroll-wrap::-webkit-scrollbar { display: none; }
+
+        .action-card-img {
+            min-width: 56vw;
+            max-width: 220px;
+            height: 140px;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .action-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+            display: block;
+        }
+
+        .action-card-img:active img { transform: scale(1.06); }
+
+        .action-tint { position: absolute; inset: 0; pointer-events: none; }
+        .action-tint-telegram { background: linear-gradient(135deg, rgba(42,171,238,0.35) 0%, transparent 60%); }
+        .action-tint-whatsapp { background: linear-gradient(135deg, rgba(37,211,102,0.35) 0%, transparent 60%); }
+
+        .action-card-img-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.05) 100%);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .action-icon-pill {
+            position: absolute;
+            top: 11px; right: 11px;
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .action-icon-pill i { font-size: 17px; }
+        .action-icon-telegram { color: #2AABEE; }
+        .action-icon-whatsapp { color: #25D366; }
+
+        .action-card-img-title {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+
+        .action-card-img-sub {
+            color: rgba(255,255,255,0.6);
+            font-size: 11px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* ===== FEATURE CARDS ===== */
+        .feature-cards-section { margin-bottom: 24px; }
+
+        .feature-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .feature-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid var(--primary-border);
+            padding: 20px 16px 18px;
+            cursor: pointer;
+            transition: transform 0.18s cubic-bezier(0.4,0,0.2,1), border-color 0.18s;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            min-height: 150px;
+        }
+
+        .feature-card:active { transform: scale(0.97); }
+
+        .feature-card-ai {
+            background: linear-gradient(145deg,
+                rgba(224,48,48,0.13) 0%,
+                rgba(139,26,26,0.07) 60%,
+                rgba(8,2,2,0.6) 100%
+            );
+        }
+
+        .feature-card-ai:active { border-color: rgba(224,48,48,0.5); }
+
+        .feature-card-info {
+            background: linear-gradient(145deg,
+                rgba(96,165,250,0.1) 0%,
+                rgba(59,130,246,0.05) 60%,
+                rgba(8,2,2,0.6) 100%
+            );
+            border-color: rgba(96,165,250,0.2);
+        }
+
+        .feature-card-info:active { border-color: rgba(96,165,250,0.45); }
+
+        .feature-card-ai::before {
+            content: '';
+            position: absolute;
+            top: -10px; right: -10px;
+            width: 0; height: 0;
+            border-left: 65px solid transparent;
+            border-bottom: 65px solid rgba(224,48,48,0.09);
+            pointer-events: none;
+        }
+
+        .feature-card-ai::after {
+            content: '';
+            position: absolute;
+            bottom: -8px; left: 10px;
+            width: 80px; height: 28px;
+            background: rgba(224,48,48,0.06);
+            transform: skewX(-22deg);
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .feature-card-ai .card-deco-circle {
+            position: absolute;
+            top: 50%; right: -20px;
+            transform: translateY(-50%);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 1px solid rgba(224,48,48,0.1);
+            pointer-events: none;
+        }
+
+        .feature-card-info::before {
+            content: '';
+            position: absolute;
+            top: -14px; right: -14px;
+            width: 56px; height: 56px;
+            background: rgba(96,165,250,0.07);
+            transform: rotate(45deg);
+            border-radius: 6px;
+            pointer-events: none;
+        }
+
+        .feature-card-info::after {
+            content: '';
+            position: absolute;
+            bottom: -6px; right: 20px;
+            width: 60px; height: 22px;
+            background: rgba(96,165,250,0.06);
+            transform: skewX(-22deg);
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .feature-card-info .card-deco-circle {
+            position: absolute;
+            top: 50%; right: -20px;
+            transform: translateY(-50%);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 1px solid rgba(96,165,250,0.08);
+            pointer-events: none;
+        }
+
+        .feature-card-icon {
+            width: 46px; height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .feature-card-icon-ai {
+            background: rgba(224,48,48,0.15);
+            border: 1px solid rgba(224,48,48,0.3);
+        }
+
+        .feature-card-icon-ai i { font-size: 22px; color: var(--primary); }
+
+        .feature-card-icon-info {
+            background: rgba(96,165,250,0.12);
+            border: 1px solid rgba(96,165,250,0.25);
+        }
+
+        .feature-card-icon-info i { font-size: 22px; color: #60a5fa; }
+
+        .feature-card-content {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card-title {
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-white);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .feature-card-desc {
+            font-size: 11px;
+            color: var(--text-white54);
+            line-height: 1.5;
+        }
+
+        .feature-card-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+            position: relative;
+            z-index: 1;
+            transition: opacity 0.15s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .feature-card-btn-ai {
+            background: rgba(224,48,48,0.18);
+            color: var(--primary);
+            border: 1px solid rgba(224,48,48,0.35);
+        }
+
+        .feature-card-btn-info {
+            background: rgba(96,165,250,0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(96,165,250,0.3);
+        }
+
+        .feature-card-btn i { font-size: 9px; }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 999;
+            background: rgba(8,2,2,0.95);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-top: 1px solid var(--primary-border);
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        .bottom-nav-list {
+            display: flex;
+            list-style: none;
+            margin: 0; padding: 0;
+            height: 76px;
+        }
+
+        .bottom-nav-list li { flex: 1; display: flex; }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            height: 100%;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            border: none;
+            background: none;
+            color: rgba(255,255,255,0.3);
+            padding: 0;
+            position: relative;
+        }
+
+        .nav-item:active { opacity: 0.7; }
+        .nav-item.active { color: var(--primary); }
+
+        .nav-item-icon {
+            width: 42px; height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .nav-item-icon img {
+            width: 48px; height: 48px;
+            object-fit: contain;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        .nav-item.active .nav-item-icon img { opacity: 1; }
+
+        .nav-item-label {
+            font-size: 11px;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: normal;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== BUG BOTTOM SHEET ===== */
+        .bug-sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 2999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.28s ease, visibility 0.28s ease;
+        }
+
+        .bug-sheet-overlay.show { opacity: 1; visibility: visible; }
+
+        .bug-sheet {
+            position: fixed;
+            bottom: -320px;
+            left: 12px; right: 12px;
+            z-index: 3000;
+            border-radius: 24px 24px 20px 20px;
+            background: rgba(10,2,2,0.97);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--primary-border);
+            padding: 0 0 24px;
+            transition: bottom 0.35s cubic-bezier(0.34, 1.28, 0.64, 1);
+            max-width: 460px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .bug-sheet.show { bottom: 96px; }
+
+        .bug-sheet-header {
+            position: relative;
+            padding: 20px 22px 16px;
+            border-bottom: 1px solid rgba(224,48,48,0.12);
+            overflow: hidden;
+        }
+
+        .bug-sheet-header::before {
+            content: '';
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 90px; height: 90px;
+            background: rgba(224,48,48,0.06);
+            transform: rotate(45deg);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .bug-sheet-header::after {
+            content: '';
+            position: absolute;
+            top: 10px; right: 50px;
+            width: 40px; height: 40px;
+            background: rgba(224,48,48,0.04);
+            transform: skewX(-20deg);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .bug-sheet-handle {
+            width: 40px; height: 4px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .bug-sheet-title {
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bug-sheet-title i { color: var(--primary); font-size: 17px; }
+
+        .bug-sheet-subtitle {
+            font-size: 11px;
+            color: var(--text-white54);
+            margin-top: 3px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bug-sheet-options {
+            padding: 16px 16px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .bug-sheet-option {
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            border: 1px solid rgba(224,48,48,0.2);
+            padding: 18px 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            transition: transform 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bug-sheet-option:active { transform: scale(0.96); }
+
+        .bug-option-bug {
+            background: linear-gradient(135deg, rgba(224,48,48,0.12), rgba(139,26,26,0.06));
+        }
+
+        .bug-option-bug:active { border-color: rgba(224,48,48,0.45); }
+
+        .bug-option-call {
+            background: linear-gradient(135deg, rgba(37,211,102,0.1), rgba(37,211,102,0.04));
+            border-color: rgba(37,211,102,0.2);
+        }
+
+        .bug-option-call:active { border-color: rgba(37,211,102,0.45); }
+
+        .bug-sheet-option::before {
+            content: '';
+            position: absolute;
+            top: -12px; right: -12px;
+            width: 0; height: 0;
+            border-style: solid;
+            pointer-events: none;
+        }
+
+        .bug-option-bug::before {
+            border-left: 50px solid transparent;
+            border-bottom: 50px solid rgba(224,48,48,0.07);
+        }
+
+        .bug-option-call::before {
+            border-left: 50px solid transparent;
+            border-bottom: 50px solid rgba(37,211,102,0.07);
+        }
+
+        .bug-sheet-option::after {
+            content: '';
+            position: absolute;
+            bottom: -8px; left: 8px;
+            width: 50px; height: 18px;
+            transform: skewX(-20deg);
+            border-radius: 3px;
+            pointer-events: none;
+        }
+
+        .bug-option-bug::after { background: rgba(224,48,48,0.05); }
+        .bug-option-call::after { background: rgba(37,211,102,0.05); }
+
+        .bug-option-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bug-option-icon-bug {
+            background: rgba(224,48,48,0.15);
+            border: 1px solid rgba(224,48,48,0.3);
+        }
+
+        .bug-option-icon-bug i { font-size: 19px; color: var(--primary); }
+
+        .bug-option-icon-call {
+            background: rgba(37,211,102,0.12);
+            border: 1px solid rgba(37,211,102,0.3);
+        }
+
+        .bug-option-icon-call i { font-size: 19px; color: #25D366; }
+
+        .bug-option-label {
+            font-family: 'MADE Evolve Sans EVO', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bug-option-label-bug  { color: var(--primary); }
+        .bug-option-label-call { color: #25D366; }
+
+        .bug-option-desc {
+            font-size: 10px;
+            color: var(--text-white54);
+            position: relative;
+            z-index: 1;
+            line-height: 1.4;
+        }
+
+        /* ===== RESPONSIVE — DESKTOP ===== */
+        @media (min-width: 900px) {
+            .drawer { left: 0 !important; width: 260px; box-shadow: 2px 0 24px rgba(0,0,0,0.4); }
+            .drawer-overlay { display: none !important; }
+            .app-bar { left: 260px; }
+            .menu-btn { display: none; }
+            .main-content { margin-left: 260px; padding-top: 70px; padding-bottom: 30px; }
+            .bottom-nav { left: 260px; }
+            .page-container { max-width: 860px; padding: 0 28px; }
+            .carousel-container, .news-slide { height: 260px; }
+            .welcome-section { padding: 28px 28px 22px; }
+            .welcome-avatar-wrap, .welcome-avatar { width: 68px; height: 68px; }
+            .welcome-avatar i { font-size: 30px; }
+            .welcome-username { font-size: 20px; }
+            .expiry-ring-wrap { width: 96px; height: 96px; }
+            .action-card-img { min-width: 200px; max-width: 240px; height: 160px; }
+            .feature-cards-grid { gap: 18px; }
+            .feature-card { min-height: 170px; padding: 24px 20px 20px; }
+            .feature-card-title { font-size: 15px; }
+            .feature-card-desc { font-size: 12px; }
+            .section-title { font-size: 18px; }
+            .bug-sheet { max-width: 560px; left: 50%; right: auto; transform: translateX(-50%); }
+            .drawer-header { height: 220px; }
+        }
+
+        @media (min-width: 1280px) {
+            .drawer { width: 290px; }
+            .app-bar { left: 290px; }
+            .main-content { margin-left: 290px; }
+            .bottom-nav { left: 290px; }
+            .page-container { max-width: 1040px; }
+            .feature-cards-grid { grid-template-columns: 1fr 1fr 1fr; }
+            .carousel-container, .news-slide { height: 300px; }
+        }
+
+        @media (max-width: 380px) {
+            .welcome-avatar-wrap, .welcome-avatar { width: 50px; height: 50px; }
+            .welcome-avatar i { font-size: 20px; }
+            .welcome-username { font-size: 15px; }
+            .expiry-ring-wrap { width: 72px; height: 72px; }
+            .action-card-img { min-width: 64vw; height: 120px; }
+            .feature-card { min-height: 130px; padding: 16px 12px 14px; }
+            .section-title { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- APP BAR -->
+    <header class="app-bar">
+        <button class="menu-btn" onclick="toggleDrawer()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="app-bar-title">
+            <img src="https://files.catbox.moe/rvo5hy.png" alt="Logo">
+        </div>
+        <button class="account-btn" onclick="window.location.href='/logout'">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </header>
+
+    <!-- DRAWER OVERLAY -->
+    <div class="drawer-overlay" onclick="toggleDrawer()"></div>
+
+    <!-- SIDEBAR DRAWER -->
+    <aside class="drawer" id="sidebarDrawer">
+        <div class="drawer-header">
+            <div class="drawer-logo">
+                <img src="https://files.catbox.moe/ya02ao.jpg" alt="Logo">
+            </div>
+            <!-- Username diisi dinamis dari /api/user-data -->
+            <div class="info-card">
+                <i class="fas fa-user"></i>
+                <span class="info-card-label">Username:</span>
+                <span class="info-card-value" id="drawerUsername">
+                    <span class="skeleton" style="width:60px;height:13px;"></span>
+                </span>
+            </div>
+            <!-- Role diisi dinamis dari /api/user-data -->
+            <div class="info-card">
+                <i class="fas fa-shield-alt"></i>
+                <span class="info-card-label">Role:</span>
+                <span class="info-card-value" id="drawerRole">
+                    <span class="skeleton" style="width:40px;height:13px;"></span>
+                </span>
+            </div>
+        </div>
+        <ul class="drawer-menu">
+            <li class="drawer-menu-item" onclick="window.location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- BUG BOTTOM SHEET OVERLAY -->
+    <div class="bug-sheet-overlay" id="bugSheetOverlay" onclick="hideBugSheet()"></div>
+
+    <!-- BUG BOTTOM SHEET -->
+    <div class="bug-sheet" id="bugSheet">
+        <div class="bug-sheet-header">
+            <div class="bug-sheet-handle"></div>
+            <div class="bug-sheet-title">
+                <i class="fas fa-bug"></i>
+                Pilih Tipe Serangan
+            </div>
+            <div class="bug-sheet-subtitle">Pilih metode yang ingin digunakan</div>
+        </div>
+        <div class="bug-sheet-options">
+            <div class="bug-sheet-option bug-option-bug" onclick="window.location.href='/execution'">
+                <div class="bug-option-icon bug-option-icon-bug">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="bug-option-label bug-option-label-bug">Bug Contact</div>
+                <div class="bug-option-desc">Serangan bug langsung ke target nomor WA</div>
+            </div>
+            <div class="bug-sheet-option bug-option-call" onclick="window.location.href='/spamcall'">
+                <div class="bug-option-icon bug-option-icon-call">
+                    <i class="fas fa-phone"></i>
+                </div>
+                <div class="bug-option-label bug-option-label-call">Spam Call</div>
+                <div class="bug-option-desc">Serangan spam telfon melalui WhatsApp</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="tab-page active" id="homePage">
+            <div class="page-container">
+
+                <!-- NEWS CAROUSEL -->
+                <div class="news-carousel">
+                    <div class="carousel-container" id="carouselContainer">
+                        <div class="carousel-track" id="carouselTrack">
+                            <div class="news-slide">
+                                <img src=https://files.catbox.moe/ya02ao.jpg" alt="News 1">
+                                <div class="news-overlay">
+                                    <h3 class="news-title">New Feature Released!</h3>
+                                    <p class="news-desc">Check out the latest updates and improvements.</p>
+                                </div>
+                            </div>
+                            <div class="news-slide">
+                                <img src="https://files.catbox.moe/gk0q2k.jpg" alt="News 2">
+                                <div class="news-overlay">
+                                    <h3 class="news-title">System Maintenance</h3>
+                                    <p class="news-desc">Scheduled maintenance will occur soon.</p>
+                                </div>
+                            </div>
+                            <div class="news-slide">
+                                <img src="https://files.catbox.moe/ig9suf.jpg" alt="News 3">
+                                <div class="news-overlay">
+                                    <h3 class="news-title">New Tools Available</h3>
+                                    <p class="news-desc">Explore our new collection of tools.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-dots" id="carouselDots">
+                        <div class="dot active" onclick="goToSlide(0)"></div>
+                        <div class="dot" onclick="goToSlide(1)"></div>
+                        <div class="dot" onclick="goToSlide(2)"></div>
+                    </div>
+                </div>
+
+                <!-- WELCOME SECTION -->
+                <div class="welcome-section">
+                    <div class="welcome-deco-tr"></div>
+                    <div class="welcome-deco-bl"></div>
+                    <div class="welcome-logo-top">
+                        <img src=https://files.catbox.moe/ya02ao.jpg" alt="Indictive Logo">
+                    </div>
+                    <div class="welcome-top">
+                        <div class="welcome-left">
+                            <div class="welcome-avatar-wrap">
+                                <div class="welcome-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="welcome-info">
+                                <p class="welcome-label">Welcome back!</p>
+                                <h2 class="welcome-username">
+                                    <!-- Username diisi dinamis -->
+                                    <span id="welcomeUsername">
+                                        <span class="skeleton" style="width:90px;height:18px;border-radius:5px;"></span>
+                                    </span>
+                                    <i class="fas fa-check-circle welcome-verified"></i>
+                                </h2>
+                                <div class="welcome-badges-row">
+                                    <!-- Role badge diisi dinamis -->
+                                    <span class="role-badge" id="roleBadge">
+                                        <span class="skeleton" style="width:40px;height:10px;border-radius:4px;"></span>
+                                    </span>
+                                    <span class="member-id-badge">#CORE</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Expiry Ring -->
+                        <div class="expiry-ring-wrap">
+                            <svg class="expiry-ring-svg" viewBox="0 0 100 100" width="82" height="82">
+                                <circle cx="50" cy="50" r="40" class="ring-track"/>
+                                <circle cx="50" cy="50" r="40" class="ring-progress" id="expiryRingProgress"/>
+                            </svg>
+                            <div class="ring-center">
+                                <span class="ring-pct" id="expiryPct">--</span>
+                                <span class="ring-sub">left</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="welcome-divider"></div>
+                    <!-- Stats Bar — semua diisi dinamis -->
+                    <div class="welcome-stats">
+                        <div class="wstat">
+                            <i class="fas fa-signal" style="color:#4ade80;"></i>
+                            <div class="wstat-text">
+                                <span class="wstat-val" id="onlineCountVal">--</span>
+                                <span class="wstat-lbl">Online</span>
+                            </div>
+                        </div>
+                        <div class="wstat-sep"></div>
+                        <div class="wstat">
+                            <i class="fas fa-hourglass-half" style="color:#de4ab3;"></i>
+                            <div class="wstat-text">
+                                <!-- Sisa hari dari /api/user-data -->
+                                <span class="wstat-val" id="daysLeftVal">--</span>
+                                <span class="wstat-lbl">Sisa hari</span>
+                            </div>
+                        </div>
+                        <div class="wstat-sep"></div>
+                        <div class="wstat">
+                            <i class="fas fa-link" style="color:#deda4a; font-size:14px;"></i>
+                            <div class="wstat-text">
+                                <span class="wstat-val" id="sessionsCountVal">--</span>
+                                <span class="wstat-lbl">Sessions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK ACTIONS -->
+                <div>
+                    <h3 class="section-title">Quick Actions</h3>
+                    <div class="actions-scroll-wrap">
+                        <div class="action-card-img" onclick="window.open('https://t.me/indictivecore', '_blank')">
+                            <img src="https://files.catbox.moe/ya02ao.jpg" alt="Telegram" loading="lazy">
+                            <div class="action-tint action-tint-telegram"></div>
+                            <div class="action-card-img-overlay">
+                                <div class="action-icon-pill">
+                                    <i class="fab fa-telegram action-icon-telegram"></i>
+                                </div>
+                                <h4 class="action-card-img-title">Join Channel</h4>
+                                <p class="action-card-img-sub">Get updates</p>
+                            </div>
+                        </div>
+                        <div class="action-card-img" onclick="window.open('https://wa.me/6285655834179, '_blank')">
+                            <img src="https://files.catbox.moe/ya02ao.jpg" alt="WhatsApp" loading="lazy">
+                            <div class="action-tint action-tint-whatsapp"></div>
+                            <div class="action-card-img-overlay">
+                                <div class="action-icon-pill">
+                                    <i class="fab fa-whatsapp action-icon-whatsapp"></i>
+                                </div>
+                                <h4 class="action-card-img-title">Join WhatsApp</h4>
+                                <p class="action-card-img-sub">Community group</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEATURE CARDS -->
+                <div class="feature-cards-section">
+                    <h3 class="section-title">Fitur Lainnya</h3>
+                    <div class="feature-cards-grid">
+                        <div class="feature-card feature-card-ai" onclick="window.location.href='/ai'">
+                            <div class="card-deco-circle"></div>
+                            <div class="feature-card-icon feature-card-icon-ai">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="feature-card-content">
+                                <div class="feature-card-title">XCore AI</div>
+                                <div class="feature-card-desc">Chat dengan AI Assistant untuk bantuan &amp; info.</div>
+                            </div>
+                            <button class="feature-card-btn feature-card-btn-ai" onclick="event.stopPropagation(); window.location.href='/ai'">
+                                <i class="fas fa-arrow-right"></i> Buka Chat
+                            </button>
+                        </div>
+                        <div class="feature-card feature-card-info" onclick="window.location.href='/info'">
+                            <div class="card-deco-circle"></div>
+                            <div class="feature-card-icon feature-card-icon-info">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="feature-card-content">
+                                <div class="feature-card-title">Information</div>
+                                <div class="feature-card-desc">Lihat informasi ketentuan layanan.</div>
+                            </div>
+                            <button class="feature-card-btn feature-card-btn-info" onclick="event.stopPropagation(); window.location.href='/info'">
+                                <i class="fas fa-arrow-right"></i> Lihat Info
+                            </button>
+                        </div>
+                        <div class="feature-card feature-card-ai" onclick="window.location.href='/sender'">
+                            <div class="card-deco-circle"></div>
+                            <div class="feature-card-icon feature-card-icon-ai">
+                                <i class="fas fa-mobile-screen-button"></i>
+                            </div>
+                            <div class="feature-card-content">
+                                <div class="feature-card-title">Bug Sender</div>
+                                <div class="feature-card-desc">Kelola WhatsApp sender untuk eksekusi bug.</div>
+                            </div>
+                            <button class="feature-card-btn feature-card-btn-ai" onclick="event.stopPropagation(); window.location.href='/sender'">
+                                <i class="fas fa-arrow-right"></i> Kelola Sender
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 30px;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav">
+        <ul class="bottom-nav-list">
+            <li>
+                <button class="nav-item active" onclick="window.location.href='/dashboard'">
+                    <div class="nav-item-icon">
+                        <img src="https://files.catbox.moe/pjyflb.jpg" alt="Home">
+                    </div>
+                    <span class="nav-item-label">Home</span>
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" id="bugTabBtn" onclick="showBugSheet()">
+                    <div class="nav-item-icon">
+                        <img src="https://files.catbox.moe/b4riqy.jpg" alt="Bug">
+                    </div>
+                    <span class="nav-item-label">Bug</span>
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="window.location.href='/device-dashboard'">
+                    <div class="nav-item-icon">
+                        <img src="https://files.catbox.moe/9snmvl.jpg" alt="Rat">
+                    </div>
+                    <span class="nav-item-label">Rat</span>
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="window.location.href='/chat'">
+                    <div class="nav-item-icon">
+                        <img src="https://files.catbox.moe/efvhz3.jpg" alt="Chat">
+                    </div>
+                    <span class="nav-item-label">Chat</span>
+                </button>
+            </li>
+            <li>
+                <button class="nav-item" onclick="window.location.href='/tools'">
+                    <div class="nav-item-icon">
+                        <img src="https://files.catbox.moe/5qwyuz.jpg" alt="Tools">
+                    </div>
+                    <span class="nav-item-label">Tools</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <script>
+        // ============================================================
+        //  DASHBOARD DATA LOADER
+        //  Mengambil data dari:
+        //    GET /api/user-data     → username, role, expired, remainingDays
+        // ============================================================
+
+        // Konstanta untuk kalkulasi ring (referensi durasi langganan default 30 hari)
+        // Sesuaikan angka ini jika durasi langganan standar berbeda
+        const DEFAULT_SUBSCRIPTION_DAYS = 30;
+
+        // ---------- EXPIRY RING ----------
+        function renderExpiryRing(remainingDays) {
+            const pct = Math.min(100, Math.round((remainingDays / DEFAULT_SUBSCRIPTION_DAYS) * 100));
+            const circumference = 251.33;
+            const offset = circumference * (1 - pct / 100);
+
+            document.getElementById('daysLeftVal').textContent = remainingDays;
+            document.getElementById('expiryPct').textContent = pct + '%';
+
+            const ringEl = document.getElementById('expiryRingProgress');
+            if      (pct <= 15) ringEl.style.stroke = '#ef4444';
+            else if (pct <= 35) ringEl.style.stroke = '#f97316';
+            else if (pct <= 60) ringEl.style.stroke = '#facc15';
+            else                ringEl.style.stroke = 'var(--primary)';
+
+            setTimeout(() => { ringEl.style.strokeDashoffset = offset; }, 400);
+        }
+
+        // ---------- ROLE BADGE ----------
+        function renderRoleBadge(role) {
+            const badge = document.getElementById('roleBadge');
+            if (!badge) return;
+
+            const roleMap = {
+                OWNER: { cls: 'role-owner', label: 'OWNER' },
+                VIP:   { cls: 'role-vip',   label: 'VIP'   },
+                USER:  { cls: 'role-user',  label: 'USER'  }
+            };
+            const r = roleMap[role?.toUpperCase()] || roleMap.USER;
+
+            badge.className = 'role-badge ' + r.cls;
+            badge.textContent = r.label;
+        }
+
+        // ---------- MAIN LOAD ----------
+        async function loadDashboardData() {
+            try {
+                const [userRes] = await Promise.all([
+                    fetch('/api/user-data',     { credentials: 'include' })
+                ]);
+
+                // Kalau 401 → sesi habis, redirect ke login
+                if (userRes.status === 401) {
+                    window.location.href = '/login?msg=Sesi expired, silakan login ulang';
+                    return;
+                }
+
+                const userData   = await userRes.json();
+
+                // ── Drawer ──
+                const drawerUsername = document.getElementById('drawerUsername');
+                const drawerRole     = document.getElementById('drawerRole');
+                if (drawerUsername) drawerUsername.textContent = userData.username || '-';
+                if (drawerRole)     drawerRole.textContent     = userData.role     || 'USER';
+
+                // ── Welcome username ──
+                const welcomeUsernameEl = document.getElementById('welcomeUsername');
+                if (welcomeUsernameEl) welcomeUsernameEl.textContent = userData.username || '-';
+
+                // ── Role badge ──
+                renderRoleBadge(userData.role);
+
+                // ── Expiry ring + sisa hari ──
+                renderExpiryRing(userData.remainingDays ?? 0);
+
+                // ── Stats bar: fetch dari /api/session-status ──
+                try {
+                    const sessRes = await fetch('/api/session-status', { cache: 'no-store' });
+                    const sessData = await sessRes.json();
+                    const activeCount = sessData.count || 0;
+                    document.getElementById('onlineCountVal').textContent = activeCount > 0 ? 'ON' : 'OFF';
+                    const sessCountEl = document.getElementById('sessionsCountVal');
+                    if (sessCountEl) sessCountEl.textContent = activeCount;
+                } catch(e) {
+                    document.getElementById('onlineCountVal').textContent = '?';
+                    const sessCountEl = document.getElementById('sessionsCountVal');
+                    if (sessCountEl) sessCountEl.textContent = '?';
+                }
+
+            } catch (err) {
+                console.error('[Dashboard] Gagal load data:', err);
+                // Tampilkan nilai fallback agar UI tidak terlihat broken
+                ['onlineCountVal','daysLeftVal'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '?';
+                });
+                document.getElementById('expiryPct').textContent = '--';
+            }
+        }
+
+        // ============================================================
+        //  DRAWER TOGGLE
+        // ============================================================
+        function toggleDrawer() {
+            if (window.innerWidth >= 900) return;
+            document.getElementById('sidebarDrawer').classList.toggle('active');
+            document.querySelector('.drawer-overlay').classList.toggle('active');
+        }
+
+        // ============================================================
+        //  BUG BOTTOM SHEET
+        // ============================================================
+        function showBugSheet() {
+            document.getElementById('bugSheetOverlay').classList.add('show');
+            document.getElementById('bugSheet').classList.add('show');
+        }
+
+        function hideBugSheet() {
+            document.getElementById('bugSheet').classList.remove('show');
+            document.getElementById('bugSheetOverlay').classList.remove('show');
+        }
+
+        // ============================================================
+        //  NEWS CAROUSEL
+        // ============================================================
+        let currentSlide = 0;
+        const totalSlides = 3;
+        let touchStartX = 0;
+        let touchCurrentX = 0;
+        let isDragging = false;
+        let dragOffset = 0;
+        const track     = document.getElementById('carouselTrack');
+        const container = document.getElementById('carouselContainer');
+
+        function getSlideWidth() { return container.offsetWidth; }
+
+        function setTrackPosition(offset, animate) {
+            animate ? track.classList.add('snapping') : track.classList.remove('snapping');
+            const base = -currentSlide * getSlideWidth();
+            track.style.transform = 'translateX(' + (base + offset) + 'px)';
+        }
+
+        function goToSlide(index) {
+            currentSlide = Math.max(0, Math.min(index, totalSlides - 1));
+            setTrackPosition(0, true);
+            updateDots();
+        }
+
+        function updateDots() {
+            document.querySelectorAll('#carouselDots .dot').forEach((dot, i) => {
+                if (i === currentSlide) {
+                    dot.classList.add('active');
+                    dot.style.width = '22px';
+                } else {
+                    dot.classList.remove('active');
+                    dot.style.width = '7px';
+                }
+            });
+        }
+
+        container.addEventListener('touchstart', function(e) {
+            isDragging = true;
+            touchStartX = e.touches[0].clientX;
+            dragOffset = 0;
+            track.classList.remove('snapping');
+        }, { passive: true });
+
+        container.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            touchCurrentX = e.touches[0].clientX;
+            dragOffset = touchCurrentX - touchStartX;
+            setTrackPosition(dragOffset, false);
+        }, { passive: true });
+
+        container.addEventListener('touchend', function() {
+            if (!isDragging) return;
+            isDragging = false;
+            const threshold = getSlideWidth() * 0.2;
+            if      (dragOffset < -threshold && currentSlide < totalSlides - 1) currentSlide++;
+            else if (dragOffset >  threshold && currentSlide > 0)               currentSlide--;
+            setTrackPosition(0, true);
+            updateDots();
+        }, { passive: true });
+
+        // ============================================================
+        //  ESC KEY
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideBugSheet();
+                if (document.getElementById('sidebarDrawer').classList.contains('active')) toggleDrawer();
+            }
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+    </script>
+
+</body>
+</html>
